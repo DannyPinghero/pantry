@@ -5,6 +5,7 @@ import { PantryItem } from '../../../types/pantry-types'
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs'
 import { ModalController } from '@ionic/angular'
 import { AddPantryItemComponent } from '../add-pantry-item/add-pantry-item.component'
+
 @Component({
 	selector: 'app-pantry-list',
 	templateUrl: './pantry-list.component.html',
@@ -73,5 +74,32 @@ export class PantryListComponent implements OnInit {
 			this.storage.delete(key)
 			await this.loadPantryList()
 		}
+	}
+
+	async itemLow([key, pantryItem]: [string, PantryItem]): Promise<void> {
+		pantryItem.runningLow = true
+		pantryItem.out = false
+		await this.storage.update(key, pantryItem)
+	}
+
+	async itemGone([key, pantryItem]: [string, PantryItem]): Promise<void> {
+		pantryItem.runningLow = false
+		pantryItem.out = true
+		await this.storage.update(key, pantryItem)
+	}
+
+	async itemOk([key, pantryItem]: [string, PantryItem]): Promise<void> {
+		pantryItem.runningLow = false
+		pantryItem.out = false
+		await this.storage.update(key, pantryItem)
+	}
+
+	private getColor([, pantryItem]: [string, PantryItem]): string {
+		if (pantryItem.runningLow) {
+			return 'warning'
+		} else if (pantryItem.out) {
+			return 'danger'
+		}
+		return 'light'
 	}
 }

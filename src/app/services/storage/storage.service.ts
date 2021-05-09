@@ -66,6 +66,7 @@ export class StorageService {
 		} else {
 			throw new Error(`Can not update ${key} - does not already exist and not enough info specified to create`)
 		}
+		newObj = { ...newObj, modified: new Date() }
 
 		await this.set(key, newObj)
 	}

@@ -15,11 +15,20 @@
 		</ion-list-header>
 		<ion-item-sliding *ngFor="let pantryEntry of searchFilteredPantryItems">
 			<ion-item-options>
+				<ion-item-option color="success" (click)="itemOk(pantryEntry)">
+					<ion-icon name="thumbs-up-outline"></ion-icon
+				></ion-item-option>
+				<ion-item-option color="warning" (click)="itemLow(pantryEntry)">
+					<ion-icon name="trending-down-outline"></ion-icon>
+				</ion-item-option>
+				<ion-item-option color="danger" (click)="itemGone(pantryEntry)">
+					<ion-icon name="alert-circle-outline"></ion-icon
+				></ion-item-option>
 				<ion-item-option color="danger" (click)="deleteItem(pantryEntry)">
 					<ion-icon name="trash-outline"> </ion-icon>
 				</ion-item-option>
 			</ion-item-options>
-			<ion-item>
+			<ion-item class="ion-padding'start" [color]="getColor(pantryEntry)">
 				{{ pantryEntry[1].name }}
 			</ion-item>
 		</ion-item-sliding>
