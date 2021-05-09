@@ -1,5 +1,5 @@
 {
-  "appId": ".pantry",
+  "appId": "io.ionic.starter",
   "appName": "pantry",
   "bundledWebRuntime": false,
   "npmClient": "npm",
@@ -9,6 +9,5 @@
       "launchShowDuration": 0
     }
   },
-  "cordova": {},
-  "linuxAndroidStudioPath": "/home/danny/AndroidStudio/bin/studio.sh"
+  "cordova": {}
 }
