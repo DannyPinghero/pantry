@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core'
+
 import { BrowserModule } from '@angular/platform-browser'
 import { RouteReuseStrategy } from '@angular/router'
 
@@ -12,9 +13,11 @@ import { AppComponent } from './app.component'
 import { AppRoutingModule } from './app-routing.module'
 import { StorageService } from './services/storage/storage.service'
 import { MainTabBarComponent } from './components/main-tab-bar/main-tab-bar.component'
+import { PantryListComponent } from './components/pantry-list/pantry-list.component'
+import { ShoppingListComponent } from './components/shopping-list/shopping-list.component'
 
 @NgModule({
-	declarations: [AppComponent, MainTabBarComponent],
+	declarations: [AppComponent, MainTabBarComponent, PantryListComponent, ShoppingListComponent],
 	entryComponents: [],
 	imports: [
 		BrowserModule,

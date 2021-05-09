@@ -1,3 +1,21 @@
-<p>
-  pantry-list works!
-</p>
+<ion-content>
+	<ion-fab vertical="bottom" horizontal="end" slot="fixed">
+		<ion-fab-button (click)="openAddPantryItem()">
+			<ion-icon name="add-outline"></ion-icon>
+		</ion-fab-button>
+	</ion-fab>
+
+	<ion-item>
+		<ion-input placeholder="Search..." (keyup)="searchBoxChange($event)"></ion-input>
+	</ion-item>
+
+	<ion-list>
+		<ion-list-header>
+			<ion-label>Pantry</ion-label>
+		</ion-list-header>
+		<!-- <ion-label>{{ pantryEntry[1].name }}</ion-label> -->
+		<ion-item *ngFor="let pantryEntry of searchFilteredPantryItems">
+			{{ pantryEntry[1].name }}
+		</ion-item>
+	</ion-list>
+</ion-content>

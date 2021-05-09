@@ -4,6 +4,7 @@ import * as CordovaSQLiteDriver from 'localforage-cordovasqlitedriver'
 
 import { PantryItem } from '../../../types/pantry-types'
 import slugify from '../../../../node_modules/slugify/slugify'
+import { of, Observable } from 'rxjs'
 
 // https://github.com/ionic-team/ionic-storage
 
@@ -20,11 +21,9 @@ export class StorageService {
 			console.log('storage already initted!')
 			return
 		}
-		console.log('storage init')
 		await this.storage.defineDriver(CordovaSQLiteDriver)
 		const storage = await this.storage.create()
 		this._storage = storage
-		console.log(this._storage)
 	}
 
 	public async set(key: string, value: PantryItem): Promise<void> {
@@ -39,5 +38,15 @@ export class StorageService {
 
 	public get_slug(name: string): string {
 		return slugify(name, { lower: true, strict: true })
+	}
+
+	public async get_all(): Promise<Observable<[string, PantryItem][]>> {
+		const keys = await this._storage.keys()
+		const items = []
+		for (const key of keys) {
+			const value = await this.get(key)
+			items.push([key, value])
+		}
+		return of(items)
 	}
 }
