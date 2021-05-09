@@ -3,35 +3,21 @@ import { Component, OnInit } from '@angular/core'
 import { StorageService } from '../../services/storage/storage.service'
 import { PantryItem } from '../../../types/pantry-types'
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs'
-import { tap } from 'rxjs/operators'
-
+import { ModalController } from '@ionic/angular'
+import { AddPantryItemComponent } from '../add-pantry-item/add-pantry-item.component'
 @Component({
 	selector: 'app-pantry-list',
 	templateUrl: './pantry-list.component.html',
 	styleUrls: ['./pantry-list.component.scss'],
 })
 export class PantryListComponent implements OnInit {
-	storage: StorageService
 	pantryItemsRaw$: Observable<[string, PantryItem][]>
 	searchFilteredPantryItems: [string, PantryItem][]
 	searchTerm$ = new BehaviorSubject(null)
 
-	constructor(storage: StorageService) {
-		this.storage = storage
-	}
+	constructor(public storage: StorageService, public modalController: ModalController) {}
 
-	async ngOnInit(): Promise<void> {
-		// example obv
-		const exampleItem = 'Bread Flour 2'
-		const exampleItemSlug = this.storage.get_slug(exampleItem)
-		const storedItem = await this.storage.get(exampleItemSlug)
-		if (storedItem == null) {
-			const ret = await this.storage.set(exampleItemSlug, {
-				name: exampleItem,
-			})
-		}
-		// end example
-
+	async loadPantryList() {
 		this.pantryItemsRaw$ = await this.storage.get_all()
 
 		combineLatest([this.pantryItemsRaw$, this.searchTerm$]).subscribe(([pantryEntries, searchTerm]) => {
@@ -53,8 +39,33 @@ export class PantryListComponent implements OnInit {
 		})
 	}
 
-	openAddPantryItem(): void {
-		console.log('Add New Item Clicked')
+	async ngOnInit(): Promise<void> {
+		// example obv
+		const exampleItem = 'Bread Flour 2'
+		const exampleItemSlug = this.storage.get_slug(exampleItem)
+		const storedItem = await this.storage.get(exampleItemSlug)
+		if (storedItem == null) {
+			const ret = await this.storage.set(exampleItemSlug, {
+				name: exampleItem,
+			})
+		}
+		// end example
+		await this.loadPantryList()
+	}
+
+	async openAddPantryItem(): Promise<void> {
+		const modal = await this.modalController.create({
+			component: AddPantryItemComponent,
+			componentProps: {
+				modalInstance: this.modalController,
+			},
+		})
+		await modal.present()
+		const retData = await modal.onDidDismiss()
+		console.log('Add New Item Clicked', retData)
+		if (retData.data.added > 0) {
+			await this.loadPantryList()
+		}
 	}
 
 	searchBoxChange(event): void {
