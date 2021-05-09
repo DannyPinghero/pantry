@@ -1,8 +1,16 @@
 <ion-content>
 	<ion-item>Add New Pantry Item!</ion-item>
-	<ion-input placeholder="What did you buy?" [(ngModel)]="newItemName" name="name" #ctrl="ngModel" required></ion-input>
+	<ion-input
+		placeholder="What did you buy?"
+		[(ngModel)]="newItemName"
+		name="name"
+		#ctrl="ngModel"
+		required
+		(ngModelChange)="errorMessage = ''"
+	></ion-input>
 	<ion-button (click)="addElement()" [disabled]="!newItemName && !adding">Add</ion-button>
 	<ion-button (click)="closeModal()">Close</ion-button>
 
-	<ion-label *ngIf="adding">Adding New Item!</ion-label>
+	<ion-label *ngIf="adding && !errorMessage">Adding New Item!</ion-label>
+	<ion-label color="danger" *ngIf="errorMessage">{{ errorMessage }}</ion-label>
 </ion-content>
