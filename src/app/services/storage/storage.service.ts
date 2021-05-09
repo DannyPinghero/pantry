@@ -41,6 +41,7 @@ export class StorageService {
 	}
 
 	public async get_all(): Promise<Observable<[string, PantryItem][]>> {
+		await this.init()
 		const keys = await this._storage.keys()
 		const items = []
 		for (const key of keys) {
@@ -48,5 +49,24 @@ export class StorageService {
 			items.push([key, value])
 		}
 		return of(items)
+	}
+
+	public async delete(key: string): Promise<void> {
+		await this.init()
+		await this._storage.remove(key)
+	}
+
+	public async update(key, partialObj: Partial<PantryItem>) {
+		const existing = (await this.get(key)) || null
+		let newObj: PantryItem
+		if (existing !== null) {
+			newObj = { ...existing, ...partialObj }
+		} else if (partialObj.name !== undefined) {
+			newObj = partialObj as PantryItem
+		} else {
+			throw new Error(`Can not update ${key} - does not already exist and not enough info specified to create`)
+		}
+
+		await this.set(key, newObj)
 	}
 }

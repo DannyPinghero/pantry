@@ -40,16 +40,6 @@ export class PantryListComponent implements OnInit {
 	}
 
 	async ngOnInit(): Promise<void> {
-		// example obv
-		const exampleItem = 'Bread Flour 2'
-		const exampleItemSlug = this.storage.get_slug(exampleItem)
-		const storedItem = await this.storage.get(exampleItemSlug)
-		if (storedItem == null) {
-			const ret = await this.storage.set(exampleItemSlug, {
-				name: exampleItem,
-			})
-		}
-		// end example
 		await this.loadPantryList()
 	}
 
@@ -68,12 +58,20 @@ export class PantryListComponent implements OnInit {
 		}
 	}
 
-	searchBoxChange(event): void {
-		const inputValue = event.target.value
+	searchBoxChange(event: KeyboardEvent): void {
+		const inputValue = (event.target as HTMLInputElement).value
 		if (inputValue == '') {
 			this.searchTerm$.next(null)
 		} else {
 			this.searchTerm$.next(inputValue)
+		}
+	}
+
+	async deleteItem(pantryEntry: [string, PantryItem]): Promise<void> {
+		const key = pantryEntry[0]
+		if (this.storage.get(key)) {
+			this.storage.delete(key)
+			await this.loadPantryList()
 		}
 	}
 }
