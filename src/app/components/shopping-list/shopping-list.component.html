@@ -1,3 +1,20 @@
-<p>
-  shopping-list works!
-</p>
+<ion-content>
+	<ion-list>
+		<ion-list-header>
+			<ion-label>You are Out of These:</ion-label>
+		</ion-list-header>
+		<ion-item>
+			<ion-checkbox slot="start" (ionChange)="selected('Bread')"> </ion-checkbox>
+			<ion-label>Bread</ion-label>
+		</ion-item>
+		<ion-list-header>
+			<ion-label>You are Low on These:</ion-label>
+		</ion-list-header>
+		<ion-list-header>
+			<ion-label>In your cart</ion-label>
+			<ion-button>Remove From Cart</ion-button>
+			<ion-button>Confirm Purchase</ion-button>
+			<ion-button>Select All</ion-button>
+		</ion-list-header>
+	</ion-list>
+</ion-content>

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core'
 import { Storage } from '@ionic/storage-angular'
 import * as CordovaSQLiteDriver from 'localforage-cordovasqlitedriver'
 
-import { PantryItem } from '../../../types/pantry-types'
+import { PantryItem, PantryEntry } from '../../../types/pantry-types'
 import slugify from '../../../../node_modules/slugify/slugify'
 import { of, Observable } from 'rxjs'
 
@@ -40,7 +40,7 @@ export class StorageService {
 		return slugify(name, { lower: true, strict: true })
 	}
 
-	public async get_all(): Promise<Observable<[string, PantryItem][]>> {
+	public async get_all(): Promise<Observable<PantryEntry[]>> {
 		await this.init()
 		const keys = await this._storage.keys()
 		const items = []
@@ -56,7 +56,7 @@ export class StorageService {
 		await this._storage.remove(key)
 	}
 
-	public async update(key, partialObj: Partial<PantryItem>) {
+	public async update(key: string, partialObj: Partial<PantryItem>): Promise<void> {
 		const existing = (await this.get(key)) || null
 		let newObj: PantryItem
 		if (existing !== null) {

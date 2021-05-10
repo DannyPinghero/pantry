@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core'
 
 import { StorageService } from '../../services/storage/storage.service'
-import { PantryItem } from '../../../types/pantry-types'
+import { PantryItem, PantryEntry } from '../../../types/pantry-types'
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs'
 import { ModalController } from '@ionic/angular'
 import { AddPantryItemComponent } from '../add-pantry-item/add-pantry-item.component'
@@ -12,8 +12,8 @@ import { AddPantryItemComponent } from '../add-pantry-item/add-pantry-item.compo
 	styleUrls: ['./pantry-list.component.scss'],
 })
 export class PantryListComponent implements OnInit {
-	pantryItemsRaw$: Observable<[string, PantryItem][]>
-	searchFilteredPantryItems: [string, PantryItem][]
+	pantryItemsRaw$: Observable<PantryEntry[]>
+	searchFilteredPantryItems: PantryEntry[]
 	searchTerm$ = new BehaviorSubject(null)
 
 	constructor(public storage: StorageService, public modalController: ModalController) {}
@@ -68,33 +68,32 @@ export class PantryListComponent implements OnInit {
 		}
 	}
 
-	async deleteItem(pantryEntry: [string, PantryItem]): Promise<void> {
-		const key = pantryEntry[0]
+	async deleteItem([key, pantryItem]: PantryEntry): Promise<void> {
 		if (this.storage.get(key)) {
 			this.storage.delete(key)
 			await this.loadPantryList()
 		}
 	}
 
-	async itemLow([key, pantryItem]: [string, PantryItem]): Promise<void> {
+	async itemLow([key, pantryItem]: PantryEntry): Promise<void> {
 		pantryItem.runningLow = true
 		pantryItem.out = false
 		await this.storage.update(key, pantryItem)
 	}
 
-	async itemGone([key, pantryItem]: [string, PantryItem]): Promise<void> {
+	async itemGone([key, pantryItem]: PantryEntry): Promise<void> {
 		pantryItem.runningLow = false
 		pantryItem.out = true
 		await this.storage.update(key, pantryItem)
 	}
 
-	async itemOk([key, pantryItem]: [string, PantryItem]): Promise<void> {
+	async itemOk([key, pantryItem]: PantryEntry): Promise<void> {
 		pantryItem.runningLow = false
 		pantryItem.out = false
 		await this.storage.update(key, pantryItem)
 	}
 
-	private getColor([, pantryItem]: [string, PantryItem]): string {
+	private getColor([, pantryItem]: PantryEntry): string {
 		if (pantryItem.runningLow) {
 			return 'warning'
 		} else if (pantryItem.out) {

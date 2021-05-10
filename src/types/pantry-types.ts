@@ -5,3 +5,5 @@ export interface PantryItem {
 	runningLow?: boolean
 	out?: boolean
 }
+
+export type PantryEntry = [string, PantryItem]
