@@ -10,9 +10,5 @@
     }
   },
   "cordova": {},
-  "linuxAndroidStudioPath": "/home/danny/AndroidStudio/bin/studio.sh",
-  "server": {
-    "url": "http://192.168.0.122:8100",
-    "cleartext": true
-  }
+  "linuxAndroidStudioPath": "/home/danny/AndroidStudio/bin/studio.sh"
 }
