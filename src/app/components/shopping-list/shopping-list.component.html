@@ -3,18 +3,26 @@
 		<ion-list-header>
 			<ion-label>You are Out of These:</ion-label>
 		</ion-list-header>
-		<ion-item>
-			<ion-checkbox slot="start" (ionChange)="selected('Bread')"> </ion-checkbox>
-			<ion-label>Bread</ion-label>
+		<ion-item *ngFor="let pantryEntry of outOf">
+			<ion-checkbox slot="start" (ionChange)="placeInCart(pantryEntry)"> </ion-checkbox>
+			<ion-label>{{ pantryEntry[1].name }}</ion-label>
 		</ion-item>
 		<ion-list-header>
 			<ion-label>You are Low on These:</ion-label>
 		</ion-list-header>
+		<ion-item *ngFor="let pantryEntry of runningLow">
+			<ion-checkbox slot="start" (ionChange)="placeInCart(pantryEntry)"> </ion-checkbox>
+			<ion-label>{{ pantryEntry[1].name }}</ion-label>
+		</ion-item>
 		<ion-list-header>
 			<ion-label>In your cart</ion-label>
 			<ion-button>Remove From Cart</ion-button>
 			<ion-button>Confirm Purchase</ion-button>
 			<ion-button>Select All</ion-button>
 		</ion-list-header>
+		<ion-item *ngFor="let cartEntry of inCart">
+			<ion-checkbox slot="start"> </ion-checkbox>
+			<ion-label> {{ cartEntry[1].name }}</ion-label>
+		</ion-item>
 	</ion-list>
 </ion-content>

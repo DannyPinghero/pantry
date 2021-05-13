@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core'
-import { PantryItem, PantryEntry } from '../../../types/pantry-types'
+import { PantryEntry } from '../../../types/pantry-types'
 import { StorageService } from '../../services/storage/storage.service'
 import { Observable } from 'rxjs'
 
@@ -17,17 +17,28 @@ export class ShoppingListComponent implements OnInit {
 	runningLow: PantryEntry[]
 	outOf: PantryEntry[]
 	otherItems: AdHocShoppingItem[]
-	inCart: (PantryEntry | AdHocShoppingItem)[]
+	inCart: (PantryEntry | AdHocShoppingItem)[] = []
 
-	pantryList$: Observable<PantryEntry>
+	pantryList$: Observable<PantryEntry[]>
 
 	constructor(public storage: StorageService) {}
 
-	async loadPantryList() {
+	async loadPantryList(): Promise<void> {
 		this.pantryList$ = await this.storage.get_all()
 
-		this.runningLow = 
+		this.pantryList$.subscribe(pantryList => {
+			this.runningLow = pantryList.filter(([, pantryItem]) => pantryItem.runningLow)
+			this.outOf = pantryList.filter(([, pantryItem]) => pantryItem.out)
+		})
 	}
 
-	async ngOnInit() {}
+	async ngOnInit(): Promise<void> {
+		await this.loadPantryList()
+	}
+
+	placeInCart(entry: PantryEntry): void {
+		this.runningLow = this.runningLow.filter(([key]) => entry[0] !== key)
+		this.outOf = this.outOf.filter(([key]) => entry[0] !== key)
+		this.inCart.push(entry)
+	}
 }
