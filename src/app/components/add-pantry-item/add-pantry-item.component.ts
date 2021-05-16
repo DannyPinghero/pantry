@@ -1,7 +1,6 @@
-import { Component, Input } from '@angular/core'
+import { Component, Input, ViewChild } from '@angular/core'
 import { StorageService } from '../../services/storage/storage.service'
 import { ModalController } from '@ionic/angular'
-
 @Component({
 	selector: 'app-add-pantry-item',
 	templateUrl: './add-pantry-item.component.html',
@@ -14,6 +13,13 @@ export class AddPantryItemComponent {
 	added = 0
 	errorMessage = ''
 	@Input() modalInstance: ModalController
+	@ViewChild('pantryInput') myInput;
+
+	ionViewDidEnter(): void {
+		setTimeout(() => {
+			this.myInput.setFocus()
+		}, 150)
+	}
 
 	closeModal(): void {
 		this.modalInstance.dismiss({
@@ -28,6 +34,8 @@ export class AddPantryItemComponent {
 		if (itemExists) {
 			this.adding = false
 			this.errorMessage = `You already have ${this.newItemName} in your pantry`
+			this.newItemName = ''
+			this.myInput.setFocus()
 			return
 		}
 		await this.storage.set(slug, {
@@ -39,5 +47,6 @@ export class AddPantryItemComponent {
 		this.newItemName = ''
 		this.errorMessage = ''
 		this.added += 1
+		this.myInput.setFocus()
 	}
 }
