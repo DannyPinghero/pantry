@@ -1,5 +1,5 @@
 import { Component } from '@angular/core'
-import { PantryEntry, AdHocShoppingEntry, PantryItem, AdHocShoppingItem } from '../../../types/pantry-types'
+import { PantryEntry, AdHocShoppingEntry, PantryItem } from '../../../types/pantry-types'
 import { StorageService } from '../../services/storage/storage.service'
 import { Observable } from 'rxjs'
 
@@ -9,63 +9,71 @@ import { Observable } from 'rxjs'
 	styleUrls: ['./shopping-list.component.scss'],
 })
 export class ShoppingListComponent {
-	runningLow: PantryEntry[]
-	outOf: PantryEntry[]
-	inCart: (PantryEntry | AdHocShoppingEntry)[] = []
-	adHocItems: AdHocShoppingEntry[] = []
-
 	pantryList$: Observable<PantryEntry[]>
+
+	outOf: PantryEntry[]
+	runningLow: PantryEntry[]
+	adHocItems: AdHocShoppingEntry[] = []
+	inCart: (PantryEntry | AdHocShoppingEntry)[] = []
 
 	inCartCheckedStatusByKey: Record<string, boolean> = {}
 
 	constructor(public storage: StorageService) {}
 
+	async ionViewDidEnter(): Promise<void> {
+		await this.loadPantryList()
+	}
+
 	async loadPantryList(): Promise<void> {
 		this.pantryList$ = await this.storage.get_all(true, false)
 		const adHoc = await this.storage.get_all(false, true)
 		adHoc.subscribe(adHocEntryList => {
-			this.inCart = adHocEntryList
+			this.adHocItems = adHocEntryList.filter(([, item]: AdHocShoppingEntry) => !item.inCart)
+			this.inCart = adHocEntryList.filter(([, item]: AdHocShoppingEntry) => item.inCart)
 		})
 
 		this.pantryList$.subscribe(pantryList => {
-			this.runningLow = pantryList.filter(([, pantryItem]) => pantryItem.runningLow && !pantryItem.inCart)
 			this.outOf = pantryList.filter(([, pantryItem]) => pantryItem.out && !pantryItem.inCart)
+			this.runningLow = pantryList.filter(([, pantryItem]) => pantryItem.runningLow && !pantryItem.inCart)
 			this.inCart = this.inCart.concat(pantryList.filter(([, pantryItem]) => pantryItem.inCart))
 		})
+
 		this.inCart.forEach(([key]) => {
 			this.inCartCheckedStatusByKey[key] = true
 		})
 	}
 
-	async ionViewDidEnter(): Promise<void> {
-		await this.loadPantryList()
+	placeInList(entry: PantryEntry | AdHocShoppingEntry, listName: string): void {
+		const allListNames = ['outOf', 'runningLow', 'adHocItems', 'inCart']
+		const allListNamesButTarget = allListNames.filter(name => name != listName)
+		this[listName].push(entry)
+		for (const name of allListNamesButTarget) {
+			this[name] = this[name].filter(([key]) => key != entry[0])
+		}
 	}
-
-	async placeInCart([key, item]: PantryEntry | AdHocShoppingEntry): Promise<void> {
-		this.runningLow = this.runningLow.filter(([key_]) => key_ !== key)
-		this.outOf = this.outOf.filter(([key_]) => key_ !== key)
-		this.inCart.push([key, item])
-		item.inCart = true
-		this.inCartCheckedStatusByKey[key] = true
+	async _toggleCartStatus([key, item]: AdHocShoppingEntry | PantryEntry, newState: boolean): Promise<void> {
+		item.inCart = newState
+		this.inCartCheckedStatusByKey[key] = newState
 		await this.storage.update(key, item)
+	}
+	async placeInCart([key, item]: PantryEntry | AdHocShoppingEntry): Promise<void> {
+		this.placeInList([key, item], 'inCart')
+		await this._toggleCartStatus([key, item], true)
 	}
 
 	async uncheckCartItem([key, item]: PantryEntry | AdHocShoppingEntry): Promise<void> {
-		this.inCartCheckedStatusByKey[key] = false
-		item.inCart = false
-
+		let targetListName: string
 		if (this.storage.isAdHoc(key)) {
-			this.adHocItems.push([key, item])
+			targetListName = 'adHocItems'
 		} else {
 			if ((item as PantryItem).runningLow) {
-				this.runningLow.push([key, item])
+				targetListName = 'runningLow'
 			} else {
-				this.outOf.push([key, item])
+				targetListName = 'outOf'
 			}
-			item.inCart = false
 		}
-		this.inCart = this.inCart.filter(([key_]) => key_ != key)
-		await this.storage.update(key, item)
+		this.placeInList([key, item], targetListName)
+		this._toggleCartStatus([key, item], false)
 	}
 
 	async emptyCheckedItemsFromCart(): Promise<void> {
