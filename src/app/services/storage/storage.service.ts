@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core'
 import { Storage } from '@ionic/storage-angular'
 import * as CordovaSQLiteDriver from 'localforage-cordovasqlitedriver'
 
-import { PantryItem, PantryEntry } from '../../../types/pantry-types'
+import { PantryItem, PantryEntry, AdHocShoppingItem, AdHocShoppingEntry } from '../../../types/pantry-types'
 import slugify from '../../../../node_modules/slugify/slugify'
 import { of, Observable } from 'rxjs'
 
@@ -18,7 +18,6 @@ export class StorageService {
 
 	async init(): Promise<void> {
 		if (this._storage != null) {
-			console.log('storage already initted!')
 			return
 		}
 		await this.storage.defineDriver(CordovaSQLiteDriver)
@@ -26,29 +25,56 @@ export class StorageService {
 		this._storage = storage
 	}
 
-	public async set(key: string, value: PantryItem): Promise<void> {
+	public async set(key: string, value: PantryItem | AdHocShoppingItem): Promise<void> {
 		await this.init()
-		return this._storage?.set(key, value)
+		const entryWithModified = { ...value, modified: new Date() }
+		return this._storage?.set(key, entryWithModified)
 	}
 
-	public async get(key: string): Promise<PantryItem> {
+	public async get(key: string): Promise<PantryItem | AdHocShoppingItem> {
 		await this.init()
 		return await this._storage?.get(key)
 	}
 
-	public get_slug(name: string): string {
-		return slugify(name, { lower: true, strict: true })
+	public get_slug(name: string, adHoc = false): string {
+		let slugName = slugify(name, { lower: true, strict: true })
+		if (adHoc) {
+			slugName = 'adhoc-' + slugName
+		} else {
+			slugName = 'pantry-' + slugName
+		}
+		return slugName
 	}
 
-	public async get_all(): Promise<Observable<PantryEntry[]>> {
+	isAdHoc(key: string): boolean {
+		return key.startsWith('adhoc-')
+	}
+	public async get_all(
+		includePantry = true,
+		includeAdHoc = true
+	): Promise<Observable<(PantryEntry | AdHocShoppingEntry)[]>> {
 		await this.init()
 		const keys = await this._storage.keys()
-		const items = []
+		const pantryEntries = []
+		const adHocEntries = []
+
 		for (const key of keys) {
 			const value = await this.get(key)
-			items.push([key, value])
+			if (this.isAdHoc(key)) {
+				adHocEntries.push([key, value])
+			} else {
+				pantryEntries.push([key, value])
+			}
 		}
-		return of(items)
+
+		let toReturn = []
+		if (includePantry) {
+			toReturn = toReturn.concat(pantryEntries)
+		}
+		if (includeAdHoc) {
+			toReturn = toReturn.concat(adHocEntries)
+		}
+		return of(toReturn)
 	}
 
 	public async delete(key: string): Promise<void> {
@@ -56,17 +82,18 @@ export class StorageService {
 		await this._storage.remove(key)
 	}
 
-	public async update(key: string, partialObj: Partial<PantryItem>): Promise<void> {
+	public async update(key: string, partialObj: Partial<PantryItem | AdHocShoppingItem>): Promise<void> {
 		const existing = (await this.get(key)) || null
-		let newObj: PantryItem
+
+		let newObj
+
 		if (existing !== null) {
 			newObj = { ...existing, ...partialObj }
 		} else if (partialObj.name !== undefined) {
-			newObj = partialObj as PantryItem
+			newObj = partialObj
 		} else {
 			throw new Error(`Can not update ${key} - does not already exist and not enough info specified to create`)
 		}
-		newObj = { ...newObj, modified: new Date() }
 
 		await this.set(key, newObj)
 	}
