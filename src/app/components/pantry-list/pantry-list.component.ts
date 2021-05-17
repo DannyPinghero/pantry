@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core'
+import { Component } from '@angular/core'
 
 import { StorageService } from '../../services/storage/storage.service'
-import { PantryItem, PantryEntry } from '../../../types/pantry-types'
+import { PantryEntry } from '../../../types/pantry-types'
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs'
 import { ModalController } from '@ionic/angular'
 import { AddPantryItemComponent } from '../add-pantry-item/add-pantry-item.component'
@@ -11,14 +11,17 @@ import { AddPantryItemComponent } from '../add-pantry-item/add-pantry-item.compo
 	templateUrl: './pantry-list.component.html',
 	styleUrls: ['./pantry-list.component.scss'],
 })
-export class PantryListComponent implements OnInit {
+export class PantryListComponent {
 	pantryItemsRaw$: Observable<PantryEntry[]>
 	searchFilteredPantryItems: PantryEntry[]
 	searchTerm$ = new BehaviorSubject(null)
 
 	constructor(public storage: StorageService, public modalController: ModalController) {}
 
-	async loadPantryList() {
+	async ionViewDidEnter(): Promise<void> {
+		await this.loadPantryList()
+	}
+	async loadPantryList(): Promise<void> {
 		this.pantryItemsRaw$ = await this.storage.get_all(true, false)
 
 		combineLatest([this.pantryItemsRaw$, this.searchTerm$]).subscribe(([pantryEntries, searchTerm]) => {
@@ -40,10 +43,6 @@ export class PantryListComponent implements OnInit {
 		})
 	}
 
-	async ngOnInit(): Promise<void> {
-		await this.loadPantryList()
-	}
-
 	async openAddPantryItem(): Promise<void> {
 		const modal = await this.modalController.create({
 			component: AddPantryItemComponent,
@@ -53,7 +52,6 @@ export class PantryListComponent implements OnInit {
 		})
 		await modal.present()
 		const retData = await modal.onDidDismiss()
-		console.log('Add New Item Clicked', retData)
 		if (retData.data.added > 0) {
 			await this.loadPantryList()
 		}
@@ -68,7 +66,7 @@ export class PantryListComponent implements OnInit {
 		}
 	}
 
-	async deleteItem([key, pantryItem]: PantryEntry): Promise<void> {
+	async deleteItem([key]: PantryEntry): Promise<void> {
 		if (this.storage.get(key)) {
 			this.storage.delete(key)
 			await this.loadPantryList()

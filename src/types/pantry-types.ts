@@ -9,6 +9,7 @@ export interface PantryItem {
 export interface AdHocShoppingItem {
 	name: string
 	modified?: Date
+	inCart?: boolean
 }
 
 export type PantryEntry = [string, PantryItem]

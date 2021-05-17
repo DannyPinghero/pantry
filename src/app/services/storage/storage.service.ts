@@ -46,7 +46,7 @@ export class StorageService {
 		return slugName
 	}
 
-	isAdHoc(key: string): boolean {
+	public isAdHoc(key: string): boolean {
 		return key.startsWith('adhoc-')
 	}
 	public async get_all(

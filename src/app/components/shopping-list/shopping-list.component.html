@@ -16,12 +16,11 @@
 		</ion-item>
 		<ion-list-header>
 			<ion-label>In your cart</ion-label>
-			<ion-button>Remove From Cart</ion-button>
-			<ion-button>Confirm Purchase</ion-button>
-			<ion-button>Select All</ion-button>
+			<ion-button (click)="emptyCheckedItemsFromCart()">Confirm Purchase</ion-button>
 		</ion-list-header>
 		<ion-item *ngFor="let cartEntry of inCart">
-			<ion-checkbox slot="start"> </ion-checkbox>
+			<ion-checkbox slot="start" checked="inCartCheckedStatusByKey[cartEntry[0]]" (click)="uncheckCartItem(cartEntry)">
+			</ion-checkbox>
 			<ion-label> {{ cartEntry[1].name }}</ion-label>
 		</ion-item>
 	</ion-list>
