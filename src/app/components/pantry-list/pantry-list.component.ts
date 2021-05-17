@@ -19,7 +19,7 @@ export class PantryListComponent implements OnInit {
 	constructor(public storage: StorageService, public modalController: ModalController) {}
 
 	async loadPantryList() {
-		this.pantryItemsRaw$ = await this.storage.get_all()
+		this.pantryItemsRaw$ = await this.storage.get_all(true, false)
 
 		combineLatest([this.pantryItemsRaw$, this.searchTerm$]).subscribe(([pantryEntries, searchTerm]) => {
 			if (searchTerm === null) {

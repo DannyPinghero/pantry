@@ -24,15 +24,22 @@ export class ShoppingListComponent implements OnInit {
 	constructor(public storage: StorageService) {}
 
 	async loadPantryList(): Promise<void> {
-		this.pantryList$ = await this.storage.get_all()
+		this.pantryList$ = await this.storage.get_all(true, false)
+		const adHoc$ = await this.storage.get_all(false, true)
+		const adHocList = await adHoc$.toPromise()
+		this.inCart = adHocList
 
-		this.pantryList$.subscribe(pantryList => {
-			this.runningLow = pantryList.filter(([, pantryItem]) => pantryItem.runningLow)
-			this.outOf = pantryList.filter(([, pantryItem]) => pantryItem.out)
-		})
+		const pantryList = await this.pantryList$.toPromise()
+		this.runningLow = pantryList.filter(([, pantryItem]) => pantryItem.runningLow && !pantryItem.inCart)
+		this.outOf = pantryList.filter(([, pantryItem]) => pantryItem.out && !pantryItem.inCart)
+		this.inCart = this.inCart.concat(pantryList.filter(([, pantryItem]) => pantryItem.inCart))
 	}
 
 	async ngOnInit(): Promise<void> {
+		await this.loadPantryList()
+	}
+
+	async ionViewDidEnter(): Promise<void> {
 		await this.loadPantryList()
 	}
 
@@ -40,5 +47,7 @@ export class ShoppingListComponent implements OnInit {
 		this.runningLow = this.runningLow.filter(([key]) => entry[0] !== key)
 		this.outOf = this.outOf.filter(([key]) => entry[0] !== key)
 		this.inCart.push(entry)
+		entry[1].inCart = true
+		this.storage.update(...entry)
 	}
 }

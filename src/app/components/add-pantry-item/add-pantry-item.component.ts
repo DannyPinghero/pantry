@@ -32,8 +32,6 @@ export class AddPantryItemComponent {
 		}
 		await this.storage.set(slug, {
 			name: this.newItemName,
-			created: new Date(),
-			modified: new Date(),
 		})
 		this.adding = false
 		this.newItemName = ''
