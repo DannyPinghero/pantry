@@ -37,7 +37,7 @@
 		<ion-button (click)="exportDB()">Export</ion-button>
 	</ion-item>
 	<ion-item>
-		<input type="file" (change)="recvFile($event.target.files[0])" />
+		<input #fileInput type="file" (change)="recvFile($event.target.files[0])" />
 	</ion-item>
 	<ion-item *ngIf="inputErrorMessage" [color]="warning">
 		{{ inputErrorMessage }}

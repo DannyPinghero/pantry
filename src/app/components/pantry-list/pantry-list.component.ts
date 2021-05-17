@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, ViewChild } from '@angular/core'
 
 import { StorageService } from '../../services/storage/storage.service'
 import { PantryEntry } from '../../../types/pantry-types'
@@ -17,6 +17,9 @@ export class PantryListComponent {
 	searchTerm$ = new BehaviorSubject(null)
 
 	inputErrorMessage = ''
+
+	@ViewChild('fileInput')
+	fileInputElement
 
 	constructor(public storage: StorageService, public modalController: ModalController) {}
 
@@ -113,13 +116,15 @@ export class PantryListComponent {
 			return
 		}
 		const fileReader = new FileReader()
-		fileReader.onload = async () => {
+		fileReader.onloadend = async () => {
 			try {
 				const contents = fileReader.result as string
 				const parsedDB = JSON.parse(contents)
 				await this.storage.overwriteDBWith(parsedDB)
 				await this.loadPantryList()
+				this.fileInputElement.nativeElement.value = null
 			} catch (e) {
+				console.error('error parsing', e)
 				this.inputErrorMessage = `Error parsing file ${e}`
 			}
 		}
