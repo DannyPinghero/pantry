@@ -25,16 +25,14 @@ export class ShoppingListComponent implements OnInit {
 
 	async loadPantryList(): Promise<void> {
 		this.pantryList$ = await this.storage.get_all(true, false)
-		const adHoc = await this.storage.get_all(false, true)
-		adHoc.subscribe(adHocEntryList => {
-			this.inCart = adHocEntryList
-		})
+		const adHoc$ = await this.storage.get_all(false, true)
+		const adHocList = await adHoc$.toPromise()
+		this.inCart = adHocList
 
-		this.pantryList$.subscribe(pantryList => {
-			this.runningLow = pantryList.filter(([, pantryItem]) => pantryItem.runningLow && !pantryItem.inCart)
-			this.outOf = pantryList.filter(([, pantryItem]) => pantryItem.out && !pantryItem.inCart)
-			this.inCart = this.inCart.concat(pantryList.filter(([, pantryItem]) => pantryItem.inCart))
-		})
+		const pantryList = await this.pantryList$.toPromise()
+		this.runningLow = pantryList.filter(([, pantryItem]) => pantryItem.runningLow && !pantryItem.inCart)
+		this.outOf = pantryList.filter(([, pantryItem]) => pantryItem.out && !pantryItem.inCart)
+		this.inCart = this.inCart.concat(pantryList.filter(([, pantryItem]) => pantryItem.inCart))
 	}
 
 	async ngOnInit(): Promise<void> {
