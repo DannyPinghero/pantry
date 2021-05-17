@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core'
 import { Storage } from '@ionic/storage-angular'
 import * as CordovaSQLiteDriver from 'localforage-cordovasqlitedriver'
+import { Plugins, FilesystemDirectory, FilesystemEncoding } from '@capacitor/core'
+const { Filesystem } = Plugins
 
 import { PantryItem, PantryEntry, AdHocShoppingItem, AdHocShoppingEntry } from '../../../types/pantry-types'
 import slugify from '../../../../node_modules/slugify/slugify'
@@ -96,5 +98,31 @@ export class StorageService {
 		}
 
 		await this.set(key, newObj)
+	}
+
+	public async overwriteDBWith(newDB: Record<string, PantryItem | AdHocShoppingItem>): Promise<void> {
+		await this._storage.clear()
+		Object.entries(newDB).forEach(async ([newKey, newVal]) => {
+			await this.set(newKey, newVal)
+		})
+	}
+
+	public async exportDBToFile(): Promise<void> {
+		const allDataArr = await (await this.get_all(true, true)).toPromise()
+		const allData = allDataArr.reduce((obj, [key, value]) => {
+			obj[key] = value
+			return obj
+		}, {})
+		try {
+			const result = await Filesystem.writeFile({
+				path: 'dbExport.json',
+				data: JSON.stringify(allData),
+				directory: FilesystemDirectory.External,
+				encoding: FilesystemEncoding.UTF8,
+			})
+			console.log('wrote file', result)
+		} catch (e) {
+			console.error('Failed to write file', e)
+		}
 	}
 }
