@@ -16,6 +16,8 @@ export class PantryListComponent {
 	searchFilteredPantryItems: PantryEntry[]
 	searchTerm$ = new BehaviorSubject(null)
 
+	inputErrorMessage = ''
+
 	constructor(public storage: StorageService, public modalController: ModalController) {}
 
 	async ionViewDidEnter(): Promise<void> {
@@ -98,5 +100,29 @@ export class PantryListComponent {
 			return 'danger'
 		}
 		return 'light'
+	}
+
+	async exportDB(): Promise<void> {
+		await this.storage.exportDBToFile()
+	}
+
+	recvFile(file: File): void {
+		this.inputErrorMessage = ''
+		if (!file.name.endsWith('.json')) {
+			this.inputErrorMessage = "Doesn't look like a valid db file to me..."
+			return
+		}
+		const fileReader = new FileReader()
+		fileReader.onload = async () => {
+			try {
+				const contents = fileReader.result as string
+				const parsedDB = JSON.parse(contents)
+				await this.storage.overwriteDBWith(parsedDB)
+				await this.loadPantryList()
+			} catch (e) {
+				this.inputErrorMessage = `Error parsing file ${e}`
+			}
+		}
+		fileReader.readAsText(file)
 	}
 }
